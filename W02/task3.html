@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head></head>
+<meta charset="UTF-8">
+<title>三つの地点の座標入力（シンプル）</title>
+</head>
+
+<body>
+	<form id="pointsForm">
+		<div>
+			<strong>点 A</strong><br>
+			<label for="ax">x:</label>
+			<input type="number" id="ax" name="ax" step="any" value="0" required>
+			<label for="ay">y:</label>
+			<input type="number" id="ay" name="ay" step="any" value="0" required>
+			<label for="az">z:</label>
+			<input type="number" id="az" name="az" step="any" value="0" required>
+		</div>
+
+		<div>
+			<strong>点 B</strong><br>
+			<label for="bx">x:</label>
+			<input type="number" id="bx" name="bx" step="any" value="0" required>
+			<label for="by">y:</label>
+			<input type="number" id="by" name="by" step="any" value="0" required>
+			<label for="bz">z:</label>
+			<input type="number" id="bz" name="bz" step="any" value="0" required>
+		</div>
+
+		<div>
+			<strong>点 C</strong><br>
+			<label for="cx">x:</label>
+			<input type="number" id="cx" name="cx" step="any" value="0" required>
+			<label for="cy">y:</label>
+			<input type="number" id="cy" name="cy" step="any" value="0" required>
+			<label for="cz">z:</label>
+			<input type="number" id="cz" name="cz" step="any" value="0" required>
+		</div>
+
+		<button type="submit">送信</button>
+	</form>
+
+	<div id="result" aria-live="polite"></div>
+
+	<script src="vec3.js"></script>
+	<script>
+		document.getElementById('pointsForm').addEventListener('submit', function (e) {
+			e.preventDefault();
+			const A = {
+				x: parseInt(document.getElementById('ax').value),
+				y: parseInt(document.getElementById('ay').value),
+				z: parseInt(document.getElementById('az').value)
+			};
+			const B = {
+				x: parseInt(document.getElementById('bx').value),
+				y: parseInt(document.getElementById('by').value),
+				z: parseInt(document.getElementById('bz').value)
+			};
+			const C = {
+				x: parseInt(document.getElementById('cx').value),
+				y: parseInt(document.getElementById('cy').value),
+				z: parseInt(document.getElementById('cz').value)
+			};
+
+			const A_point = new Vec3(A.x, A.y, A.z);
+			const B_point = new Vec3(B.x, B.y, B.z);
+			const C_point = new Vec3(C.x, C.y, C.z);
+
+			const S = AreaOfTriangle(A_point, B_point, C_point);
+			document.getElementById('result').innerText = `三角形の面積	: ${S}`;
+		});
+
+	</script>
+</body>
+
+</html>

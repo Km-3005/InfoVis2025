@@ -22,19 +22,16 @@
 	<script>
 		const form = document.querySelector('form');
 		form.addEventListener('submit', (event) => {
-			event.preventDefault(); // フォームのデフォルトの送信を防ぐ
+			event.preventDefault();
 
 			const x = parseFloat(document.getElementById('x').value);
 			const y = parseFloat(document.getElementById('y').value);
 			const z = parseFloat(document.getElementById('z').value);
 
 			const vec = new Vec3(x, y, z);
-			document.getElementById('result').innerText = `結果: ${vec.min()}, ${vec.mid()}, ${vec.max()}`;
+			document.getElementById('result').innerText = `結果: 最小値 ${vec.min()}, 中間値 ${vec.mid()}, 最大値 ${vec.max()}`;
 		});
 	</script>
-
 </body>
-
-</html>
 
 </html>
