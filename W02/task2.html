@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<title>３つの数字の入力欄</title>
+</head>
+
+<body>
+	<form>
+		<label for="x">数字1:</label>
+		<input type="number" id="x" name="x"><br><br>
+		<label for="y">数字2:</label>
+		<input type="number" id="y" name="y"><br><br>
+		<label for="z">数字3:</label>
+		<input type="number" id="z" name="z"><br><br>
+		<button type="submit">送信</button>
+	</form>
+	<div id="result"></div>
+
+	<script src="vec3.js"></script>
+	<script>
+		const form = document.querySelector('form');
+		form.addEventListener('submit', (event) => {
+			event.preventDefault(); // フォームのデフォルトの送信を防ぐ
+
+			const x = parseFloat(document.getElementById('x').value);
+			const y = parseFloat(document.getElementById('y').value);
+			const z = parseFloat(document.getElementById('z').value);
+
+			const vec = new Vec3(x, y, z);
+			document.getElementById('result').innerText = `結果: ${vec.min()}, ${vec.mid()}, ${vec.max()}`;
+		});
+	</script>
+
+</body>
+
+</html>
+
+</html>
