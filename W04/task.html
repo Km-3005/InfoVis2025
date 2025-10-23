@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="utf-8">
+	<title>Task 1</title>
+	<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+</head>
+
+<body>
+	<svg width="600" height="400"></svg>
+
+	<script>
+		const svg = d3.select("svg");
+
+		d3.csv("./w04_task1.csv").then(data => {
+			svg.selectAll("circle")
+				.data(data)
+				.join("circle")
+				.attr("cx", d => +d.x)
+				.attr("cy", d => +d.y)
+				.attr("r", 20)
+				.attr("fill", d => d.color);
+		});
+	</script>
+</body>
+
+</html>

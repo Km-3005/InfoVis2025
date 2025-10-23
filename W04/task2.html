@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="utf-8">
+	<title>Task 2</title>
+	<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+</head>
+
+<body>
+	<svg width="400" height="200"></svg>
+
+	<script>
+		const svg = d3.select("svg");
+		const barHeight = 30;
+		const margin = 10;
+
+		d3.csv("w04_task2.csv").then(data => {
+			const x = d3.scaleLinear()
+				.domain([0, d3.max(data, d => +d.value)])
+				.range([0, 300]);
+
+			svg.selectAll("rect")
+				.data(data)
+				.join("rect")
+				.attr("x", 80)
+				.attr("y", (d, i) => i * (barHeight + margin))
+				.attr("width", d => x(+d.value))
+				.attr("height", barHeight)
+				.attr("fill", "black");
+
+			svg.selectAll("text.label")
+				.data(data)
+				.join("text")
+				.attr("class", "label")
+				.attr("x", 10)
+				.attr("y", (d, i) => i * (barHeight + margin) + barHeight / 1.5)
+				.text(d => d.label)
+				.attr("font-size", "14px");
+		});
+	</script>
+</body>
+
+</html>
