@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Task 2 - Add Chart Title and Axis Labels</title>
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 20px;
+		}
+
+		#chart {
+			border: 1px solid #ccc;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Task 2</h1>
+	<div id="chart"></div>
+
+	<script>
+		class ScatterPlot {
+			constructor(config, data) {
+				this.config = {
+					parent: config.parent,
+					width: config.width || 256,
+					height: config.height || 256,
+					margin: config.margin || { top: 10, right: 10, bottom: 10, left: 10 }
+				};
+				this.data = data;
+				this.init();
+			}
+
+			init() {
+				const margin = this.config.margin;
+				const width = this.config.width;
+				const height = this.config.height;
+
+				const innerWidth = width - margin.left - margin.right;
+				const innerHeight = height - margin.top - margin.bottom;
+
+				const svg = d3.select(this.config.parent)
+					.append('svg')
+					.attr('width', width)
+					.attr('height', height);
+
+				const g = svg.append('g')
+					.attr('transform', `translate(${margin.left}, ${margin.top})`);
+
+				const xScale = d3.scaleLinear()
+					.domain([0, d3.max(this.data, d => d.x) * 1.1])
+					.range([0, innerWidth]);
+
+				const yScale = d3.scaleLinear()
+					.domain([0, d3.max(this.data, d => d.y) * 1.1])
+					.range([innerHeight, 0]);
+
+				const xAxis = d3.axisBottom(xScale)
+					.ticks(5)
+					.tickSize(5)
+					.tickPadding(5);
+
+				g.append('g')
+					.attr('transform', `translate(0, ${innerHeight})`)
+					.call(xAxis);
+
+				const yAxis = d3.axisLeft(yScale)
+					.ticks(5)
+					.tickSize(5)
+					.tickPadding(5);
+
+				g.append('g')
+					.call(yAxis);
+
+				g.selectAll('circle')
+					.data(this.data)
+					.enter()
+					.append('circle')
+					.attr('cx', d => xScale(d.x))
+					.attr('cy', d => yScale(d.y))
+					.attr('r', 5)
+					.attr('fill', d => d.color);
+
+				svg.append('text')
+					.attr('x', width / 2)
+					.attr('y', 30)
+					.attr('text-anchor', 'middle')
+					.style('font-size', '16px')
+					.style('font-weight', 'bold')
+					.text('Chart Title');
+
+				svg.append('text')
+					.attr('x', width / 2)
+					.attr('y', height - 20)
+					.attr('text-anchor', 'middle')
+					.style('font-size', '12px')
+					.text('X-label');
+
+				svg.append('text')
+					.attr('transform', 'rotate(-90)')
+					.attr('x', -height / 2)
+					.attr('y', 20)
+					.attr('text-anchor', 'middle')
+					.style('font-size', '12px')
+					.text('Y-label');
+			}
+		}
+
+		d3.csv('w04_task1.csv').then(data => {
+			data.forEach(d => {
+				d.x = +d.x;
+				d.y = +d.y;
+			});
+
+			const config = {
+				parent: '#chart',
+				width: 500,
+				height: 500,
+				margin: { top: 60, right: 40, bottom: 60, left: 60 }
+			};
+
+			new ScatterPlot(config, data);
+		});
+	</script>
+</body>
+
+</html>
