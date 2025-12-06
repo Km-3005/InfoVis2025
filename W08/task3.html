@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+	<h2>Task 3</h2>
+
+	<svg id="pie" width="400" height="400"></svg>
+
+	<script>
+
+		class PieChart {
+			constructor(config) {
+				this.svg = d3.select(config.svg);
+				this.width = config.width;
+				this.height = config.height;
+				this.radius = Math.min(this.width, this.height) / 2;
+				this.g = this.svg.append("g")
+					.attr("transform", "translate(" + this.width / 2 + "," + this.height / 2 + ")");
+				this.color = d3.scaleOrdinal();
+			}
+
+			init(data) {
+				this.data = data;
+				this.color.domain(data.map(d => d.label)).range(data.map(d => d.color));
+				this.pie = d3.pie().value(d => d.value);
+				this.arc = d3.arc().outerRadius(this.radius).innerRadius(0);
+				this.labelArc = d3.arc().outerRadius(this.radius - 40).innerRadius(this.radius - 40);
+				this.gSlices = this.g.selectAll("path");
+				this.gLabels = this.g.selectAll("text");
+				this.render();
+			}
+
+			update(newData) {
+				this.data = newData;
+				this.render();
+			}
+
+			render() {
+				var arcs = this.pie(this.data);
+
+				this.gSlices = this.gSlices
+					.data(arcs)
+					.join("path")
+					.attr("d", this.arc)
+					.attr("fill", d => d.data.color);
+
+				this.gLabels = this.gLabels
+					.data(arcs)
+					.join("text")
+					.attr("transform", d => "translate(" + this.labelArc.centroid(d) + ")")
+					.attr("dy", "0.35em")
+					.attr("text-anchor", "middle")
+					.attr("fill", "white")
+					.text(d => d.data.label);
+			}
+		}
+
+		d3.csv("./w04_task1.csv").then(raw => {
+			var data = raw.map(d => ({
+				label: d.x,
+				value: +d.y,
+				color: d.color
+			}));
+
+			var chart = new PieChart({
+				svg: "#pie",
+				width: 400,
+				height: 400
+			});
+
+			chart.init(data);
+		});
+
+	</script>
+
+</body>
+
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>BarChart Task</title>
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<style>
+		body {
+			font-family: sans-serif;
+		}
+	</style>
+</head>
+
+<body>
+
+	<h2>Task 1</h2>
+
+	<svg id="chart" width="600" height="300"></svg>
+
+	<script>
+		class BarChart {
+			constructor(config) {
+				this.svg = d3.select(config.svg);
+				this.width = config.width;
+				this.height = config.height;
+
+				this.margin = { top: 20, right: 20, bottom: 30, left: 60 };
+				this.innerWidth = this.width - this.margin.left - this.margin.right;
+				this.innerHeight = this.height - this.margin.top - this.margin.bottom;
+
+				this.g = this.svg.append("g")
+					.attr("transform", `translate(${this.margin.left},${this.margin.top})`);
+			}
+
+			init(data) {
+				this.data = data;
+
+				this.x = d3.scaleLinear()
+					.range([0, this.innerWidth])
+					.domain([0, d3.max(data, d => d.x)]);
+
+				this.y = d3.scaleBand()
+					.range([0, this.innerHeight])
+					.padding(0.2)
+					.domain(data.map((d, i) => i));
+
+				// 軸
+				this.xAxis = this.g.append("g")
+					.attr("transform", `translate(0,${this.innerHeight})`)
+					.call(d3.axisBottom(this.x));
+
+				this.yAxis = this.g.append("g")
+					.call(d3.axisLeft(this.y)
+						.tickFormat((d, i) => this.data[i].color)
+					);
+
+				this.render();
+			}
+
+			update(newData) {
+				this.data = newData;
+
+				this.x.domain([0, d3.max(newData, d => d.x)]);
+				this.y.domain(newData.map((d, i) => i));
+
+				this.render();
+			}
+
+			render() {
+				const self = this;
+
+				const bars = this.g.selectAll("rect")
+					.data(this.data);
+
+				bars.enter()
+					.append("rect")
+					.merge(bars)
+					.attr("x", 0)
+					.attr("y", (d, i) => self.y(i))
+					.attr("height", self.y.bandwidth())
+					.attr("width", d => self.x(d.x))
+					.attr("fill", d => d.color);
+
+				bars.exit().remove();
+
+				this.xAxis.call(d3.axisBottom(this.x));
+				this.yAxis.call(
+					d3.axisLeft(this.y).tickFormat((d, i) => this.data[i].color)
+				);
+			}
+		}
+
+		d3.csv("./w04_task1.csv").then(raw => {
+			const data = raw.map(d => ({
+				x: +d.x,
+				y: +d.y,
+				color: d.color
+			}));
+
+			const chart = new BarChart({
+				svg: "#chart",
+				width: 600,
+				height: 300
+			});
+
+			chart.init(data);
+		});
+	</script>
+
+</body>
+
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+
+	<h2>Task 2</h2>
+
+	<svg id="chart" width="600" height="300"></svg>
+
+	<script>
+
+		var data = [
+			{ x: 0, y: 100 },
+			{ x: 40, y: 5 },
+			{ x: 120, y: 80 },
+			{ x: 150, y: 30 },
+			{ x: 200, y: 50 }
+		];
+
+		class LineChart {
+			constructor(config) {
+				this.svg = d3.select(config.svg);
+				this.width = config.width;
+				this.height = config.height;
+				this.margin = { top: 20, right: 20, bottom: 30, left: 40 };
+				this.innerWidth = this.width - this.margin.left - this.margin.right;
+				this.innerHeight = this.height - this.margin.top - this.margin.bottom;
+				this.g = this.svg.append("g")
+					.attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+			}
+
+			init(data) {
+				this.data = data;
+				this.x = d3.scaleLinear()
+					.domain(d3.extent(data, d => d.x))
+					.range([0, this.innerWidth]);
+				this.y = d3.scaleLinear()
+					.domain([0, d3.max(data, d => d.y)])
+					.range([this.innerHeight, 0]);
+				this.line = d3.line()
+					.x(d => this.x(d.x))
+					.y(d => this.y(d.y));
+				this.xAxis = this.g.append("g")
+					.attr("transform", "translate(0," + this.innerHeight + ")")
+					.call(d3.axisBottom(this.x));
+				this.yAxis = this.g.append("g")
+					.call(d3.axisLeft(this.y));
+				this.path = this.g.append("path");
+				this.circles = this.g.selectAll("circle");
+				this.render();
+			}
+
+			update(newData) {
+				this.data = newData;
+				this.x.domain(d3.extent(newData, d => d.x));
+				this.y.domain([0, d3.max(newData, d => d.y)]);
+				this.render();
+			}
+
+			render() {
+				this.path
+					.datum(this.data)
+					.attr("fill", "none")
+					.attr("stroke", "red")
+					.attr("stroke-width", 2)
+					.attr("d", this.line);
+				this.circles = this.circles
+					.data(this.data);
+				this.circles.enter()
+					.append("circle")
+					.merge(this.circles)
+					.attr("cx", d => this.x(d.x))
+					.attr("cy", d => this.y(d.y))
+					.attr("r", 4)
+					.attr("fill", "black");
+				this.circles.exit().remove();
+				this.xAxis.call(d3.axisBottom(this.x));
+				this.yAxis.call(d3.axisLeft(this.y));
+			}
+		}
+
+		var chart = new LineChart({
+			svg: "#chart",
+			width: 600,
+			height: 300
+		});
+
+		chart.init(data);
+
+	</script>
+
+</body>
+
+</html>
