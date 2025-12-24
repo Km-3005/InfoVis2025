@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Animated Bar Chart</title>
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 20px;
+		}
+
+		h1 {
+			text-align: center;
+		}
+
+		.controls {
+			text-align: center;
+			margin-bottom: 20px;
+		}
+
+		button {
+			margin: 5px;
+			padding: 8px 16px;
+		}
+
+		#chart {
+			display: flex;
+			justify-content: center;
+		}
+
+		.bar {
+			fill: steelblue;
+		}
+	</style>
+</head>
+
+<body>
+	<div class="controls">
+		<button onclick="toggleOrientation()">Change Orientation</button>
+		<button onclick="sortBars('reverse')">Reverse</button>
+		<button onclick="sortBars('ascend')">Ascend</button>
+		<button onclick="sortBars('descend')">Descend</button>
+	</div>
+
+	<div id="chart"></div>
+
+	<script>
+		// グローバル変数
+		let data = [];
+		let currentOrientation = 'horizontal'; // 'horizontal' or 'vertical'
+		let svg, xScale, yScale, xAxis, yAxis;
+
+		// SVGのサイズとマージン
+		const margin = { top: 20, right: 30, bottom: 60, left: 100 };
+		const width = 800 - margin.left - margin.right;
+		const height = 500 - margin.top - margin.bottom;
+
+		// CSVデータの読み込みと初期化
+		d3.csv('data.csv').then(function (csvData) {
+			data = csvData.map(d => ({
+				name: d.name,
+				value: +d.value
+			}));
+
+			initChart();
+			updateChart(750);
+		});
+
+		// チャートの初期化
+		function initChart() {
+			svg = d3.select('#chart')
+				.append('svg')
+				.attr('width', width + margin.left + margin.right)
+				.attr('height', height + margin.top + margin.bottom)
+				.append('g')
+				.attr('transform', `translate(${margin.left},${margin.top})`);
+
+			// 軸グループの作成
+			svg.append('g').attr('class', 'x-axis');
+			svg.append('g').attr('class', 'y-axis');
+		}
+
+		// チャートの更新
+		function updateChart(duration = 750) {
+			if (currentOrientation === 'horizontal') {
+				updateHorizontalChart(duration);
+			} else {
+				updateVerticalChart(duration);
+			}
+		}
+
+		// 横棒グラフの更新
+		function updateHorizontalChart(duration) {
+			// スケールの設定
+			xScale = d3.scaleLinear()
+				.domain([0, d3.max(data, d => d.value)])
+				.range([0, width]);
+
+			yScale = d3.scaleBand()
+				.domain(data.map(d => d.name))
+				.range([0, height])
+				.padding(0.2);
+
+			// 軸の更新
+			xAxis = d3.axisBottom(xScale);
+			yAxis = d3.axisLeft(yScale);
+
+			svg.select('.x-axis')
+				.transition()
+				.duration(duration)
+				.attr('transform', `translate(0,${height})`)
+				.call(xAxis);
+
+			svg.select('.y-axis')
+				.transition()
+				.duration(duration)
+				.call(yAxis);
+
+			// バーの更新
+			const bars = svg.selectAll('.bar')
+				.data(data, d => d.name);
+
+			// 新規バーの追加
+			bars.enter()
+				.append('rect')
+				.attr('class', 'bar')
+				.attr('x', 0)
+				.attr('y', d => yScale(d.name))
+				.attr('width', 0)
+				.attr('height', yScale.bandwidth())
+				.merge(bars)
+				.transition()
+				.duration(duration)
+				.attr('x', 0)
+				.attr('y', d => yScale(d.name))
+				.attr('width', d => xScale(d.value))
+				.attr('height', yScale.bandwidth());
+
+			// 不要なバーの削除
+			bars.exit()
+				.transition()
+				.duration(duration)
+				.attr('width', 0)
+				.remove();
+		}
+
+		// 縦棒グラフの更新
+		function updateVerticalChart(duration) {
+			// スケールの設定
+			xScale = d3.scaleBand()
+				.domain(data.map(d => d.name))
+				.range([0, width])
+				.padding(0.2);
+
+			yScale = d3.scaleLinear()
+				.domain([0, d3.max(data, d => d.value)])
+				.range([height, 0]);
+
+			// 軸の更新
+			xAxis = d3.axisBottom(xScale);
+			yAxis = d3.axisLeft(yScale);
+
+			svg.select('.x-axis')
+				.transition()
+				.duration(duration)
+				.attr('transform', `translate(0,${height})`)
+				.call(xAxis);
+
+			svg.select('.y-axis')
+				.transition()
+				.duration(duration)
+				.call(yAxis);
+
+			// バーの更新
+			const bars = svg.selectAll('.bar')
+				.data(data, d => d.name);
+
+			// 新規バーの追加
+			bars.enter()
+				.append('rect')
+				.attr('class', 'bar')
+				.attr('x', d => xScale(d.name))
+				.attr('y', height)
+				.attr('width', xScale.bandwidth())
+				.attr('height', 0)
+				.merge(bars)
+				.transition()
+				.duration(duration)
+				.attr('x', d => xScale(d.name))
+				.attr('y', d => yScale(d.value))
+				.attr('width', xScale.bandwidth())
+				.attr('height', d => height - yScale(d.value));
+
+			// 不要なバーの削除
+			bars.exit()
+				.transition()
+				.duration(duration)
+				.attr('height', 0)
+				.attr('y', height)
+				.remove();
+		}
+
+		// 向きの切り替え
+		function toggleOrientation() {
+			currentOrientation = currentOrientation === 'horizontal' ? 'vertical' : 'horizontal';
+			updateChart(750);
+		}
+
+		// ソート機能
+		function sortBars(type) {
+			if (type === 'reverse') {
+				data.reverse();
+			} else if (type === 'ascend') {
+				data.sort((a, b) => a.value - b.value);
+			} else if (type === 'descend') {
+				data.sort((a, b) => b.value - a.value);
+			}
+			updateChart(750);
+		}
+	</script>
+</body>
+
+</html>

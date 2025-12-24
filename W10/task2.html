@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Scatter Plot with Tooltip</title>
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<style>
+		body {
+			font-family: Arial, sans-serif;
+			margin: 20px;
+		}
+
+		h1 {
+			text-align: center;
+		}
+
+		#chart {
+			display: flex;
+			justify-content: center;
+		}
+
+		.dot {
+			cursor: pointer;
+		}
+
+		.dot.selected {
+			stroke: black;
+			stroke-width: 3;
+		}
+
+		.tooltip {
+			position: absolute;
+			padding: 8px;
+			background-color: white;
+			border: 1px solid #ccc;
+			border-radius: 4px;
+			pointer-events: none;
+			font-size: 12px;
+			box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+		}
+
+		.tooltip.hidden {
+			display: none;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="chart"></div>
+
+	<script>
+		// SVGのサイズとマージン
+		const margin = { top: 40, right: 40, bottom: 60, left: 60 };
+		const width = 700 - margin.left - margin.right;
+		const height = 500 - margin.top - margin.bottom;
+
+		// SVGの作成
+		const svg = d3.select('#chart')
+			.append('svg')
+			.attr('width', width + margin.left + margin.right)
+			.attr('height', height + margin.top + margin.bottom)
+			.append('g')
+			.attr('transform', `translate(${margin.left},${margin.top})`);
+
+		// ツールチップの作成
+		const tooltip = d3.select('body')
+			.append('div')
+			.attr('class', 'tooltip hidden');
+
+		// データの読み込み
+		d3.csv('w04_task1.csv').then(function (data) {
+			// データの変換
+			data.forEach(d => {
+				d.x = +d.x;
+				d.y = +d.y;
+				d.tooltipVisible = false;
+			});
+
+			// スケールの設定
+			const xScale = d3.scaleLinear()
+				.domain([0, d3.max(data, d => d.x) + 50])
+				.range([0, width]);
+
+			const yScale = d3.scaleLinear()
+				.domain([0, d3.max(data, d => d.y) + 50])
+				.range([height, 0]);
+
+			// X軸
+			svg.append('g')
+				.attr('transform', `translate(0,${height})`)
+				.call(d3.axisBottom(xScale));
+
+			svg.append('text')
+				.attr('x', width / 2)
+				.attr('y', height + 40)
+				.attr('text-anchor', 'middle')
+				.style('font-size', '14px')
+				.text('X label');
+
+			// Y軸
+			svg.append('g')
+				.call(d3.axisLeft(yScale));
+
+			svg.append('text')
+				.attr('transform', 'rotate(-90)')
+				.attr('x', -height / 2)
+				.attr('y', -40)
+				.attr('text-anchor', 'middle')
+				.style('font-size', '14px')
+				.text('Y label');
+
+			// データポイントの描画
+			svg.selectAll('.dot')
+				.data(data)
+				.enter()
+				.append('circle')
+				.attr('class', 'dot')
+				.attr('cx', d => xScale(d.x))
+				.attr('cy', d => yScale(d.y))
+				.attr('r', 10)
+				.attr('fill', d => d.color)
+				.on('click', function (event, d) {
+					// ツールチップの表示/非表示を切り替え
+					d.tooltipVisible = !d.tooltipVisible;
+
+					// 選択状態のスタイルを更新
+					d3.select(this)
+						.classed('selected', d.tooltipVisible);
+
+					if (d.tooltipVisible) {
+						// ツールチップを表示
+						tooltip
+							.classed('hidden', false)
+							.html(`
+                                <strong>Attributes:</strong><br>
+                                X: ${d.x}<br>
+                                Y: ${d.y}<br>
+                                Color: ${d.color}
+                            `)
+							.style('left', (event.pageX + 10) + 'px')
+							.style('top', (event.pageY - 10) + 'px');
+					} else {
+						// ツールチップを非表示
+						tooltip.classed('hidden', true);
+					}
+				});
+		});
+	</script>
+</body>
+
+</html>
