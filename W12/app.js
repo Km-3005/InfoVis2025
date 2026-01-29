@@ -156,7 +156,7 @@ function drawMainScatter() {
 	const rect = container.getBoundingClientRect();
 	const width = rect.width;
 	const height = rect.height;
-	const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+	const margin = { top: 15, right: 25, bottom: 55, left: 55 };
 
 	d3.select('#mainScatter').selectAll('*').remove();
 
@@ -470,8 +470,8 @@ function drawPieChart(svgId, legendId, counts, config, total, filterType) {
 	const svg = d3.select('#' + svgId);
 	const legendContainer = document.getElementById(legendId);
 
-	const size = 140;
-	const radius = size / 2 - 5;
+	const size = 90;
+	const radius = size / 2 - 4;
 
 	svg.attr('width', size).attr('height', size);
 
