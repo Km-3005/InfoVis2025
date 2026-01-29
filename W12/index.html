@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>成績分析インタフェース</title>
+	<script src="https://d3js.org/d3.v7.min.js"></script>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+		rel="stylesheet">
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+	<div id="tooltip" class="tooltip"></div>
+
+	<div class="container">
+		<!-- Header -->
+		<header>
+			<div class="header-title">
+				<h1>成績分析インタフェース</h1>
+			</div>
+			<div class="controls">
+				<div class="mode-toggle">
+					<button id="singleMode" class="mode-btn active">単一分析</button>
+					<button id="comparisonMode" class="mode-btn">比較分析</button>
+				</div>
+				<button id="resetBtn" class="reset-btn">リセット</button>
+			</div>
+		</header>
+
+		<!-- Main Content - Left/Right Grid -->
+		<div class="main-grid">
+			<!-- Left: Main Scatter Plot -->
+			<div class="panel scatter-panel">
+				<div class="panel-header">
+					<span class="panel-title">散布図ビュー</span>
+				</div>
+				<div class="chart-area">
+					<svg id="mainScatter"></svg>
+				</div>
+				<div class="legend">
+					<div class="legend-item">
+						<div class="legend-color" style="background: #22c55e"></div>大幅向上 (+15超)
+					</div>
+					<div class="legend-item">
+						<div class="legend-color" style="background: #84cc16"></div>向上 (+5〜+15)
+					</div>
+					<div class="legend-item">
+						<div class="legend-color" style="background: #94a3b8"></div>変化なし (-5〜+5)
+					</div>
+					<div class="legend-item">
+						<div class="legend-color" style="background: #f97316"></div>やや低下 (-5〜-15)
+					</div>
+					<div class="legend-item">
+						<div class="legend-color" style="background: #ef4444"></div>低下 (-15以下)
+					</div>
+				</div>
+			</div>
+
+			<!-- Right: Analysis Panels -->
+			<div class="analysis-area">
+				<!-- Group Analysis Panel -->
+				<div id="singlePanel" class="panel analysis-panel">
+					<div class="panel-header">
+						<span class="panel-title">グループ分析</span>
+					</div>
+					<div class="selection-control">
+						<label>分析対象:</label>
+						<select id="singleSelect">
+							<option value="all">全学生</option>
+							<option value="high_improve">大幅向上 (+15超)</option>
+							<option value="moderate_improve">向上 (+5〜+15)</option>
+							<option value="slight_change">変化なし (-5〜+5)</option>
+							<option value="slight_decline">やや低下 (-5〜-15)</option>
+							<option value="declined">低下 (-15以下)</option>
+						</select>
+					</div>
+
+					<div class="stats-row">
+						<div class="stat-box">
+							<div class="stat-value" id="statCount">—</div>
+							<div class="stat-label">人数</div>
+						</div>
+						<div class="stat-box">
+							<div class="stat-value" id="statImprovement">—</div>
+							<div class="stat-label">平均変化点</div>
+						</div>
+						<div class="stat-box">
+							<div class="stat-value" id="statPassRate">—</div>
+							<div class="stat-label">期末試験の合格率</div>
+						</div>
+					</div>
+
+					<div class="factor-section">
+						<div class="section-title">行動指標</div>
+						<div class="factor-charts">
+							<div class="mini-chart">
+								<div class="mini-title">学習時間 (h/日)</div>
+								<svg id="factorStudy"></svg>
+							</div>
+							<div class="mini-chart">
+								<div class="mini-title">モチベーション (0-10)</div>
+								<svg id="factorMotivation"></svg>
+							</div>
+							<div class="mini-chart">
+								<div class="mini-title">授業出席率 (%)</div>
+								<svg id="factorAttendance"></svg>
+							</div>
+						</div>
+					</div>
+
+					<div class="category-section">
+						<div class="section-title">環境要因</div>
+						<div id="categoryBreakdown" class="category-breakdown"></div>
+					</div>
+				</div>
+
+				<!-- Comparison Panel -->
+				<div id="comparisonPanel" class="panel analysis-panel hidden">
+					<div class="panel-header">
+						<span class="panel-title">比較分析</span>
+					</div>
+
+					<div class="comparison-selectors">
+						<div class="selector-group group-a-selector">
+							<label>グループA:</label>
+							<select id="groupASelect">
+								<option value="high_improve">大幅向上 (+15超)</option>
+								<option value="moderate_improve">向上 (+5〜+15)</option>
+								<option value="slight_change">変化なし (-5〜+5)</option>
+								<option value="slight_decline">やや低下 (-5〜-15)</option>
+								<option value="declined">低下 (-15以下)</option>
+							</select>
+						</div>
+						<div class="vs-label">vs</div>
+						<div class="selector-group group-b-selector">
+							<label>グループB:</label>
+							<select id="groupBSelect">
+								<option value="high_improve">大幅向上 (+15超)</option>
+								<option value="moderate_improve">向上 (+5〜+15)</option>
+								<option value="slight_change">変化なし (-5〜+5)</option>
+								<option value="slight_decline">やや低下 (-5〜-15)</option>
+								<option value="declined" selected>低下 (-15以下)</option>
+							</select>
+						</div>
+					</div>
+
+					<div class="group-summary">
+						<div class="group-box group-a">
+							<div class="group-label">グループA</div>
+							<div class="group-count" id="groupACount">—</div>
+							<div class="group-stat" id="groupAImpr">平均変化: —</div>
+						</div>
+						<div class="group-box group-b">
+							<div class="group-label">グループB</div>
+							<div class="group-count" id="groupBCount">—</div>
+							<div class="group-stat" id="groupBImpr">平均変化: —</div>
+						</div>
+					</div>
+
+					<div class="comparison-table-section">
+						<div class="section-title">要因の比較</div>
+						<div id="comparisonTable" class="comparison-table"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="app.js"></script>
+</body>
+
+</html>
